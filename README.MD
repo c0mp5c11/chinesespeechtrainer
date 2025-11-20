@@ -1,3 +1,3 @@
-Chinese Speech Trainer
+# Chinese Speech Trainer
 
-This is a video game work in progress.
+## This is a video game work in progress.
