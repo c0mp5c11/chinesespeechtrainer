@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "charity.c0mpu73rpr09r4m.chinesespeechtrainer"
+    namespace = "charity.c0mpu73rpr09r4m.chinesespeechtrainer2"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "charity.c0mpu73rpr09r4m.chinesespeechtrainer"
+        applicationId = "charity.c0mpu73rpr09r4m.chinesespeechtrainer2"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -27,6 +27,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

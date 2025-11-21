@@ -1,9 +1,8 @@
-package charity.c0mpu73rpr09r4m.chinesespeechtrainer.ui.theme
+package charity.c0mpu73rpr09r4m.chinesespeechtrainer2.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val ColorScheme = darkColorScheme(
     primary = Green,

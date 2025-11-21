@@ -1,4 +1,4 @@
-package charity.c0mpu73rpr09r4m.chinesespeechtrainer.ui.theme
+package charity.c0mpu73rpr09r4m.chinesespeechtrainer2.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

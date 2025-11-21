@@ -1,4 +1,4 @@
-package charity.c0mpu73rpr09r4m.chinesespeechtrainer
+package charity.c0mpu73rpr09r4m.chinesespeechtrainer2
 
 import org.junit.Test
 
