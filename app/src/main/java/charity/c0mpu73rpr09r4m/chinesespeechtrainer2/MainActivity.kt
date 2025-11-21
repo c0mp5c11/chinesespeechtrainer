@@ -2,16 +2,13 @@ package charity.c0mpu73rpr09r4m.chinesespeechtrainer2
 
 import android.Manifest
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,17 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import charity.c0mpu73rpr09r4m.chinesespeechtrainer2.ui.theme.ChineseSpeechTrainerTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    // screen text
     private var displayText by mutableStateOf("")
     private lateinit var dictionaryEntry : DictionaryEntry
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     val speechRecognizer = getSpeechRecognizer()
                     startListening(speechRecognizer)
                 } else {
-                    updateText("Failed to get permission.\n\n未能获得许可。\n\nWèi néng huòdé xǔkě.")
+                    updateText("Failed to get permission.")
                 }
             }
 
@@ -62,7 +54,8 @@ class MainActivity : ComponentActivity() {
                             Manifest.permission.RECORD_AUDIO
                         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
                     ) {
-                        updateText("Hello World\n\n你好 世界\n\nNǐ hǎo Shìjiè\n")
+                        dictionaryEntry = DictionaryEntry("你好", "Hello", "Nǐ hǎo")
+                        updateText("${dictionaryEntry.englishWord}\n\n${dictionaryEntry.chineseWord}\n\n${dictionaryEntry.pinyin}\n")
                         val speechRecognizer = getSpeechRecognizer()
                         startListening(speechRecognizer)
                     } else {
@@ -90,55 +83,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun getSpeechRecognizer(): SpeechRecognizer {
-        // Use cloud recognizer for reliability
         val result = SpeechRecognizer.createSpeechRecognizer(this)
-
-        result.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {
-                updateText("onReadyForSpeech")
-            }
-
-            override fun onBeginningOfSpeech() {
-                updateText("onBeginningOfSpeech")
-            }
-
-            override fun onRmsChanged(rmsdB: Float) {
-                updateText("onRmsChanged: $rmsdB")
-            }
-
-            override fun onBufferReceived(buffer: ByteArray?) {
-                updateText("onBufferReceived")
-            }
-
-            override fun onEndOfSpeech() {
-                updateText("onEndOfSpeech")
-            }
-
-            override fun onError(error: Int) {
-                updateText("Error code: $error")
-            }
-
-            override fun onResults(results: Bundle?) {
-                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                matches?.forEach { word ->
-                    updateText("Recognized: $word")
-
-                    if (word.contains("你好 世界")) {
-                        updateText("Match found: 你好 世界")
-                    }
-                }
-            }
-
-            override fun onPartialResults(partialResults: Bundle?) {
-                updateText("onPartialResults")
-            }
-
-            override fun onEvent(eventType: Int, params: Bundle?) {
-                updateText("onEvent")
-            }
-        })
 
         return result
     }
@@ -155,8 +101,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateText(text: String) {
-        lifecycleScope.launch(Dispatchers.Main) {
-            displayText = text
-        }
+        displayText = text
     }
 }
