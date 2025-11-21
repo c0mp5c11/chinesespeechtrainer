@@ -5,6 +5,9 @@
       <SelectionState runConfigName="Development">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="chinesespeechtrainer2.ChineseSpeechTrainer.app">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>
