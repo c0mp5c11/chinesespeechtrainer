@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     // screen text
     private var displayText by mutableStateOf("")
+    private lateinit var dictionaryEntry : DictionaryEntry
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {

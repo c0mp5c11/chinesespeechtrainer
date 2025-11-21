@@ -46,12 +46,12 @@ object DataLogic {
 
         if (cursor.count > 0) {
             cursor.moveToNext()
-            result = DictionaryEntry().apply {
-                ChineseWord = cursor.getString(0)
-                EnglishWord = cursor.getString(1)
-                Phonics = cursor.getString(2)
-                Pinyin = cursor.getString(3)
-            }
+            //result = DictionaryEntry.apply {
+            //    chineseWord = cursor.getString(0)
+            //    englishWord = cursor.getString(1)
+            //    phonics = cursor.getString(2)
+            //    pinyin = cursor.getString(3)
+            //}
         }
         cursor.close()
         return result

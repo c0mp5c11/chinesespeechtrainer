@@ -10,9 +10,9 @@ class SpeechRecognizerUtteranceProgressListener(
 
     override fun onDone(utteranceId: String?) {
         // Safely access dictionaryEntry and its ChineseWord
-        MainActivity.dictionaryEntry?.ChineseWord?.let {
-            speechRecognizer.startListening(it)
-        }
+        //MainActivity.dictionaryEntry?.ChineseWord?.let {
+        //    speechRecognizer.startListening(it)
+        //}
     }
 
     override fun onError(utteranceId: String?) {

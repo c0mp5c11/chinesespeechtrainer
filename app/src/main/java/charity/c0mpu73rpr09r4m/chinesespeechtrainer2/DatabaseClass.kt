@@ -20,7 +20,7 @@ class DatabaseTask(activity: MainActivity) : AsyncTask<Void, Void, Exception?>()
         return try {
             val assets = Assets(activityReference.get())
             val assetDir: File = assets.syncAssets()
-            activityReference.get()?.setupRecognizer(assetDir)
+            //activityReference.get()?.setupRecognizer(assetDir)
             null
         } catch (e: IOException) {
             Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
@@ -32,7 +32,7 @@ class DatabaseTask(activity: MainActivity) : AsyncTask<Void, Void, Exception?>()
         if (result != null) {
             Toast.makeText(context, result.toString(), Toast.LENGTH_SHORT).show()
         } else {
-            activityReference.get()?.initialize()
+            //activityReference.get()?.initialize()
         }
     }
 }
