@@ -4,10 +4,7 @@ import android.speech.tts.UtteranceProgressListener
 import charity.c0mpu73rpr09r4m.chinesespeechtrainer2.MainActivity
 import edu.cmu.pocketsphinx.SpeechRecognizer
 
-class SpeechRecognizerUtteranceProgressListener(
-    private val speechRecognizer: SpeechRecognizer
-) : UtteranceProgressListener() {
-
+class SpeechRecognizerUtteranceProgressListener(private val speechRecognizer: SpeechRecognizer) : UtteranceProgressListener() {
     override fun onDone(utteranceId: String?) {
         // Safely access dictionaryEntry and its ChineseWord
         //MainActivity.dictionaryEntry?.ChineseWord?.let {

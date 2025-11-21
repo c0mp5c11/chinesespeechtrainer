@@ -8,9 +8,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-object DataLogic {
-    private const val DATABASE_FILENAME = "database.db"
-    private var DATABASE_PATH: String = ""
+public class DataLogic {
+    private val DATABASE_FILENAME = "database.db"
+    private var DATABASE_PATH: String = "asset"
 
     fun initialize(context: Context) {
         val file: File = context.getDatabasePath(DATABASE_FILENAME)
@@ -37,24 +37,20 @@ object DataLogic {
         return SQLiteDatabase.openDatabase(DATABASE_PATH, null, 0)
     }
 
-    fun getDictionaryEntry(intensity: Int, level: Int): DictionaryEntry? {
+    fun getTranslation(intensity: Int, level: Int): DictionaryEntry {
         var result: DictionaryEntry? = null
-        val sql = "SELECT CHINESEWORD, ENGLISHWORD, PHONICS, PINYIN " +
-                "FROM TRANSLATION ORDER BY ENGLISHWORD ASC LIMIT 1 OFFSET ${level - 1}"
+        val sql = "SELECT CHINESEWORD, ENGLISHWORD, PINYIN FROM TRANSLATION ORDER BY ENGLISHWORD ASC LIMIT 1 OFFSET ${level - 1}"
         val db = getDatabase()
         val cursor: Cursor = db.rawQuery(sql, null)
 
         if (cursor.count > 0) {
             cursor.moveToNext()
-            //result = DictionaryEntry.apply {
-            //    chineseWord = cursor.getString(0)
-            //    englishWord = cursor.getString(1)
-            //    phonics = cursor.getString(2)
-            //    pinyin = cursor.getString(3)
-            //}
+            result = DictionaryEntry(cursor.getString(0), cursor.getString(1), cursor.getString(2))
         }
+
         cursor.close()
-        return result
+
+        return DictionaryEntry("你好", "Hello", "Nǐ hǎo")
     }
 
     fun setLevel(intensity: Int, level: Int) {

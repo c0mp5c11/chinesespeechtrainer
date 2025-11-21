@@ -54,10 +54,7 @@ class MainActivity : ComponentActivity() {
                             Manifest.permission.RECORD_AUDIO
                         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
                     ) {
-                        dictionaryEntry = DictionaryEntry("你好", "Hello", "Nǐ hǎo")
-                        updateText("${dictionaryEntry.englishWord}\n\n${dictionaryEntry.chineseWord}\n\n${dictionaryEntry.pinyin}\n")
-                        val speechRecognizer = getSpeechRecognizer()
-                        startListening(speechRecognizer)
+                        startup()
                     } else {
                         // Prompt the user
                         requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -81,6 +78,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun startup() {
+        val logic = DataLogic()
+        dictionaryEntry = logic.getTranslation(1, 1)
+        updateText("${dictionaryEntry.englishWord}\n\n${dictionaryEntry.chineseWord}\n\n${dictionaryEntry.pinyin}\n")
+        val speechRecognizer = getSpeechRecognizer()
+        startListening(speechRecognizer)
     }
 
     private fun getSpeechRecognizer(): SpeechRecognizer {
