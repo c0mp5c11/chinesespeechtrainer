@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     private var displayColor by mutableStateOf(Color.Green)
     private lateinit var speechRecognizer: SpeechRecognizer
     private var displayWord: String = "你好"
-    private var isMatch: Boolean = false;
+    private var isMatch: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +90,15 @@ class MainActivity : ComponentActivity() {
     private fun initSpeechRecognizer() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
 
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        }
+
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
             override fun onResults(bundle: Bundle?) {
                 val matches = bundle?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
@@ -101,21 +110,27 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                speechRecognizer.destroy()
+                if (isMatch) {
+                    displayWord = getWord()
+                    isMatch = false
+                }
+
+                speechRecognizer.startListening(intent)
             }
 
             override fun onReadyForSpeech(params: Bundle?) {
-                if(isMatch) {
+                if (isMatch) {
                     updateText(displayWord, Color.Green)
-                    displayWord = getWord()
-                }
-                else {
+                } else {
                     updateText(displayWord, Color.White)
                 }
             }
 
-            override fun onError(error: Int) { }
-            override fun onPartialResults(bundle: Bundle?) { }
+            override fun onError(error: Int) {
+                speechRecognizer.startListening(intent)
+            }
+
+            override fun onPartialResults(bundle: Bundle?) {}
             override fun onEndOfSpeech() {}
             override fun onBeginningOfSpeech() {}
             override fun onBufferReceived(buffer: ByteArray?) {}
@@ -123,22 +138,12 @@ class MainActivity : ComponentActivity() {
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
 
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-        }
-
         speechRecognizer.startListening(intent)
     }
 
     private fun getWord(): String {
-        //todo: generate from db file
+        // TODO: generate from db file
         val result = displayWord + "1"
-
         return result
     }
 
