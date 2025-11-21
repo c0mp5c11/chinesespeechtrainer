@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="LevelText" type="id">LevelText</item>
+    <item name="TryText" type="id">TryText</item>
+    <item name="ChineseText" type="id">ChineseText</item>
+    <item name="EnglishText" type="id">EnglishText</item>
+    <item name="PinyinText" type="id">PinyinText</item>
+    <item name="PhonicsText" type="id">PhonicsText</item>
+    <item name="WinText" type="id">WinText</item>
+</resources>
