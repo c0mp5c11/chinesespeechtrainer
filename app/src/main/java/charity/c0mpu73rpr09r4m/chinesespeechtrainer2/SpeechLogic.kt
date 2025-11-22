@@ -3,7 +3,6 @@ package charity.c0mpu73rpr09r4m.chinesespeechtrainer2
 import android.content.Context
 import java.io.File
 import java.io.IOException
-import kotlin.collections.isNotEmpty
 
 public class SpeechLogic {
     private val assetFolderName = "zh_cn.cd_cont_5000"

@@ -34,7 +34,6 @@ import edu.cmu.pocketsphinx.SpeechRecognizerSetup
 import java.io.File
 import java.io.IOException
 import java.util.*
-import androidx.compose.runtime.*
 
 class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnInitListener {
 
