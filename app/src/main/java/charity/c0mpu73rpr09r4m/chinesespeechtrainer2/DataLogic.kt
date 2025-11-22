@@ -12,8 +12,8 @@ public class DataLogic {
         return SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
     }
 
-    fun getTranslation(context: Context, index: Int): DictionaryEntry? {
-        var result: DictionaryEntry? = null
+    fun getTranslation(context: Context, index: Int): Translation? {
+        var result: Translation? = null
         val sql = "SELECT CHINESEWORD, ENGLISHWORD, PINYIN FROM TRANSLATION WHERE ChineseWordCount = ? ORDER BY ENGLISHWORD ASC LIMIT 1 OFFSET $index"
         val selectionArgs = arrayOf("2")
         val db = getDatabase(context)
@@ -21,7 +21,7 @@ public class DataLogic {
 
         if (cursor.count > 0) {
             cursor.moveToNext()
-            result = DictionaryEntry(cursor.getString(0), cursor.getString(1), cursor.getString(2))
+            result = Translation(cursor.getString(0), cursor.getString(1), cursor.getString(2))
         }
 
         cursor.close()
@@ -43,6 +43,10 @@ public class DataLogic {
         }
 
         return file.path
+    }
+
+    fun getWordIndex(wordIndex: Int): Int {
+        return 0;
     }
 
 }
