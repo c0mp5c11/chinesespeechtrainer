@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -27,60 +29,59 @@ class MenuActivity : ComponentActivity() {
 
         setContent {
             ChineseSpeechTrainerTheme {
-                MenuScreen()
-            }
-        }
-    }
-}
+                val context = LocalContext.current
 
-@Composable
-fun MenuScreen() {
-    var clickCount by remember { mutableStateOf(0) }
-    val context = LocalContext.current
-
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            context.startActivity(Intent(context, MenuActivity::class.java))
-        }
-    }
-
-    val hasPermission = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.RECORD_AUDIO
-    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (hasPermission) {
-            Text(
-                text = "Permission already granted",
-                fontSize = 20.sp,
-                color = Color.Green
-            )
-        } else {
-            Button(
-                onClick = {
-                    clickCount++
-                    requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                var permissionGranted by remember {
+                    mutableStateOf(
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.RECORD_AUDIO
+                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                    )
                 }
-            ) {
-                Text(text = "Request Permission")
+
+                if(permissionGranted) {
+                    context.startActivity(Intent(context, MenuActivity::class.java))
+                }
+                else {
+                    val requestPermissionLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.RequestPermission()
+                    ) { granted ->
+                        permissionGranted = granted
+                    }
+
+                    if(permissionGranted) {
+                        context.startActivity(Intent(context, MainActivity::class.java))
+                    }
+                    else {
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            Box(
+                                modifier = Modifier.padding(innerPadding)
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Button(onClick = { requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }) {
+                                        Text("Grant Permission")
+                                    }
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Text(
+                                        text = "This feature stops working as designed if denied more than once, but permission can be manually set in the operating system application settings.",
+                                        fontSize = 20.sp,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Tap the button to grant permission.",
-                fontSize = 20.sp,
-                color = Color.Blue
-            )
         }
     }
 }

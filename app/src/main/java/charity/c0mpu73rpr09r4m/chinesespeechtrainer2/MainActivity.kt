@@ -32,16 +32,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Modern permission launcher
-
-
         setContent {
             ChineseSpeechTrainerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val logic = DataLogic()
                     dictionaryEntry = logic.getTranslation(1, 1)
                     updateText("${dictionaryEntry.englishWord}\n\n${dictionaryEntry.chineseWord}\n\n${dictionaryEntry.pinyin}\n")
-                    val speechRecognizer = getSpeechRecognizer()
 
                     Box(
                         modifier = Modifier
@@ -60,27 +56,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    private fun startup() {
-
-    }
-
-    private fun getSpeechRecognizer(): SpeechRecognizer {
-        val result = SpeechRecognizer.createSpeechRecognizer(this)
-
-        return result
-    }
-
-    private fun startListening(speechRecognizer: SpeechRecognizer) {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN") // Chinese (Mandarin)
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-        }
-        speechRecognizer.startListening(intent)
     }
 
     private fun updateText(text: String) {

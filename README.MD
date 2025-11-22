@@ -7,8 +7,8 @@
 Show the start screen with help button for 3 seconds
 
 #menu activity
-add a button to request permission.
-check for permissions and move on
+if permission skip screen, else show a button to request permission.
+in the callback of the button skip if granted otherwise nothing until user taps
 
 #main activity
 get the players last score
