@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.PowerManager
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,7 +40,6 @@ import java.io.IOException
 import java.util.Locale
 import androidx.compose.runtime.livedata.observeAsState
 
-
 class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnInitListener {
     private var displayText by mutableStateOf("")
     private var translation: Translation? = null
@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private val speechLogic: SpeechLogic = SpeechLogic()
     val borderColor = MutableLiveData(Color.White)
 
-    private val timeout: Long = 10*60*1000L
+    private val timeout: Long = 10 * 60 * 1000L
 
     override fun onResult(hypothesis: Hypothesis?) {}
     override fun onBeginningOfSpeech() {}
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, wakeLockTag)
-        wakeLock?.acquire( timeout)
+        wakeLock?.acquire(timeout)
         enableEdgeToEdge()
 
         setContent {
@@ -109,7 +109,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
                                     .padding(70.dp, 20.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-
                                 Text(
                                     text = displayText,
                                     fontSize = 40.sp,
@@ -148,7 +147,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
     override fun onPause() {
         super.onPause()
-
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
@@ -161,9 +159,17 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
                 tts?.language = Locale.CHINESE
             }
             isTtsInitialized = true
-            speechRecognizer?.let {
-                tts?.setOnUtteranceProgressListener(SpeechRecognizerUtteranceProgressListener(it))
-            }
+
+            tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {}
+                override fun onDone(utteranceId: String?) {
+                    if (utteranceId == "UTTERANCE_ID_CHINESE") runOnUiThread { listen() }
+                }
+                override fun onError(utteranceId: String?) {
+                    if (utteranceId == "UTTERANCE_ID_CHINESE") runOnUiThread { listen() }
+                }
+            })
+
             refresh()
         }
     }
@@ -189,7 +195,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
     fun setBorderColor(color: Color) {
         borderColor.postValue(color)
-
     }
 
     override fun onEndOfSpeech() {
@@ -225,7 +230,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         if (isSphinxInitialized && isTtsInitialized && translation != null) {
             updateDisplayText()
             announce()
-            listen()
         }
     }
 
@@ -235,7 +239,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
             if (translation != null) {
                 updateDisplayText()
                 announce()
-                listen()
             } else {
                 startActivity(Intent(this, WinActivity::class.java))
             }
@@ -246,14 +249,13 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         translation?.let {
             displayText = "${it.englishWord}\n${it.chineseWord}\n${it.pinyin}"
         }
-
         setBorderColor(Color.White)
     }
 
     private fun listen() {
         translation?.chineseWord?.let { word ->
-            speechRecognizer?.addKeyphraseSearch(word, word)
-            speechRecognizer?.startListening(word)
+            speechRecognizer?.addKeyphraseSearch("search", word)
+            speechRecognizer?.startListening("search")
         }
     }
 
