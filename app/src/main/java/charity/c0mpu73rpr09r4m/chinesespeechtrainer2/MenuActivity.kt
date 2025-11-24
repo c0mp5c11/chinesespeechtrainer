@@ -71,7 +71,7 @@ class MenuActivity : ComponentActivity() {
                                         color = Color.White
                                     )
 
-                                    Spacer(modifier = Modifier.height(50.dp))
+                                    Spacer(modifier = Modifier.height(20.dp))
 
                                     Button(
                                         onClick = {
@@ -82,12 +82,15 @@ class MenuActivity : ComponentActivity() {
                                     }
 
                                     Spacer(modifier = Modifier.height(20.dp))
+
                                     Text(
                                         text = "To hear audible Chinese pronunciation, voice data must be installed at the operating system level. This may be in addition to US English",
                                         fontSize = 20.sp,
                                         color = Color.White
                                     )
+
                                     Spacer(modifier = Modifier.height(20.dp))
+
                                     Button(
                                         onClick = {
                                             val installIntent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
@@ -95,6 +98,25 @@ class MenuActivity : ComponentActivity() {
                                         }
                                     ) {
                                         Text("Install Voice")
+                                    }
+
+                                    Spacer(modifier = Modifier.height(20.dp))
+
+                                    Text(
+                                        text = "Speak Chinese language in this training word game.",
+                                        fontSize = 20.sp,
+                                        color = Color.White
+                                    )
+
+                                    Spacer(modifier = Modifier.height(20.dp))
+
+                                    Button(
+                                        onClick = {
+                                            val installIntent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
+                                            context.startActivity(installIntent)
+                                        }
+                                    ) {
+                                        Text("Start")
                                     }
                                 }
                             }
