@@ -47,7 +47,7 @@ class MenuActivity : ComponentActivity() {
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "This feature stops working as designed if granted or denied once, but permission can be manually set in the operating system application settings. Reinstalling this application will restore functionality if the security setting button stops working.",
+                                text = "The in application audio recording permission request feature stops working as designed if granted or denied once, but permission can be manually set in the operating system application settings. Reinstalling this application will restore functionality if the security setting button stops working.",
                                 fontSize = 20.sp,
                                 color = Color.White
                             )
