@@ -12,8 +12,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -69,26 +73,45 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         setContent {
             ChineseSpeechTrainerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(
+                    Column(
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize()
                             .padding(16.dp),
-                        contentAlignment = Alignment.Center
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Box(
                             modifier = Modifier
-                                .background(Color.White, shape = RectangleShape)
-                                .border(1.dp, Color.Black, RectangleShape)
-                                .padding(70.dp, 20.dp)
+                                .padding(innerPadding)
+                                .fillMaxSize()
+                                .padding(16.dp)
                         ) {
                             Text(
-                                text = displayText,
-                                fontSize = 40.sp,
-                                color = Color.Black,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 50.sp
+                                text = wordIndex.toString(),
+                                fontSize = 12.sp,
+                                color = Color.White,
+                                textAlign = TextAlign.Start,
+                                lineHeight = 12.sp,
+                                modifier = Modifier.align(Alignment.TopStart)
                             )
+
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .background(Color.White, shape = RectangleShape)
+                                    .border(1.dp, Color.Black, RectangleShape)
+                                    .padding(70.dp, 20.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = displayText,
+                                    fontSize = 40.sp,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 50.sp
+                                )
+                            }
                         }
                     }
                 }
