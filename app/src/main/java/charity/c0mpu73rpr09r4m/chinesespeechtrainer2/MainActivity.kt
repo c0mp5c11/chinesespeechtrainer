@@ -36,31 +36,25 @@ import java.io.IOException
 import java.util.Locale
 
 class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnInitListener {
-
     private var displayText by mutableStateOf("")
     private var translation: Translation? = null
-
     private val dictionaryFileName = "zh_cn.dic"
     private val maximumTries = 5
     private val threshold = 4.885e-16f
     private val wakeLockTag = "CHINESE_SPEECH_TRAINER:TAG"
-
     private var speechRecognizer: SpeechRecognizer? = null
     private var tts: TextToSpeech? = null
     private var wakeLock: PowerManager.WakeLock? = null
-
     private var wordIndex: Int = 0
     private var tryCount: Int = 1
     private var isSphinxInitialized: Boolean = false
     private var isTtsInitialized: Boolean = false
-
     private val dataLogic: DataLogic = DataLogic()
     private val speechLogic: SpeechLogic = SpeechLogic()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, wakeLockTag)
         wakeLock?.acquire()
@@ -104,7 +98,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
             startActivity(Intent(this, WinActivity::class.java))
         }
 
-        // Initialize recognizer (async copy + setup)
         Thread {
             try {
                 val speechFolder = speechLogic.copyFolder(this)
@@ -115,7 +108,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
             }
         }.start()
 
-        // Initialize TTS
         tts = TextToSpeech(applicationContext, this)
     }
 
@@ -123,7 +115,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         if (status == TextToSpeech.SUCCESS) {
             val result = tts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                // fallback if needed
                 tts?.setLanguage(Locale.CHINESE)
             }
             isTtsInitialized = true
@@ -146,7 +137,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         }
     }
 
-    // RecognitionListener
     override fun onPartialResult(hypothesis: Hypothesis?) {
         if (hypothesis != null) {
             onNext()
@@ -186,7 +176,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         }
     }
 
-    /** Gatekeeper: start the first session (announce + listen) once both TTS and Sphinx are ready */
     private fun tryStartFirstSession() {
         if (isSphinxInitialized && isTtsInitialized && translation != null) {
             updateText("${translation?.englishWord}\n${translation?.chineseWord}\n${translation?.pinyin}")
@@ -195,7 +184,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         }
     }
 
-    /** Subsequent translations */
     private fun displayNext() {
         if (isSphinxInitialized && isTtsInitialized) {
             translation = dataLogic.getTranslation(this, wordIndex)
