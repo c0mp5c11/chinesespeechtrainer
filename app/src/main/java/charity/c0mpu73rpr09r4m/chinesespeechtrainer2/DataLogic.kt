@@ -45,8 +45,26 @@ public class DataLogic {
         return file.path
     }
 
-    fun getWordIndex(wordIndex: Int): Int {
-        return 0;
+    fun getWordIndex(context: Context): Int {
+        var result = 0
+        val sql = "SELECT WordIndex FROM Cache"
+        val db = getDatabase(context)
+        val cursor: Cursor = db.rawQuery(sql, null)
+
+        if (cursor.moveToFirst()) {
+            result = cursor.getInt(0)
+        }
+
+        cursor.close()
+
+        return result
     }
 
+
+    fun setWordIndex(context: Context, index: Int) {
+        val db = getDatabase(context)
+        db.execSQL("DELETE FROM Cache")
+        val sql = "INSERT INTO Cache (WordIndex) VALUES (?)"
+        db.execSQL(sql, arrayOf(index))
+    }
 }

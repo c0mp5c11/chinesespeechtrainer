@@ -52,6 +52,11 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private val dataLogic: DataLogic = DataLogic()
     private val speechLogic: SpeechLogic = SpeechLogic()
 
+    override fun onResult(hypothesis: Hypothesis?) {}
+    override fun onBeginningOfSpeech() {}
+    override fun onError(error: Exception?) {}
+    override fun onTimeout() {}
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -60,7 +65,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         wakeLock?.acquire()
         enableEdgeToEdge()
 
-        // Compose UI
         setContent {
             ChineseSpeechTrainerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -90,7 +94,9 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
             }
         }
 
-        translation = dataLogic.getTranslation(this, 0)
+        wordIndex = dataLogic.getWordIndex(this)
+        translation = dataLogic.getTranslation(this, wordIndex)
+
         if (translation != null) {
             updateText("${translation?.englishWord}\n${translation?.chineseWord}\n${translation?.pinyin}")
         } else {
@@ -113,15 +119,19 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
+
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 tts?.setLanguage(Locale.CHINESE)
             }
+
             isTtsInitialized = true
+
             speechRecognizer?.let {
                 tts?.setOnUtteranceProgressListener(
                     SpeechRecognizerUtteranceProgressListener(it)
                 )
             }
+
             tryStartFirstSession()
         }
     }
@@ -131,6 +141,7 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         speechRecognizer?.cancel()
         speechRecognizer?.shutdown()
         tts?.shutdown()
+
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
@@ -144,21 +155,18 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
     override fun onEndOfSpeech() {
         tryCount++
+
         if (tryCount >= maximumTries) {
             onNext()
         }
     }
-
-    override fun onResult(hypothesis: Hypothesis?) {}
-    override fun onBeginningOfSpeech() {}
-    override fun onError(error: Exception?) {}
-    override fun onTimeout() {}
 
     private fun onNext() {
         speechRecognizer?.cancel()
         speechRecognizer?.stop()
         tryCount = 1
         wordIndex++
+        dataLogic.setWordIndex(this, wordIndex)
         Handler(mainLooper).postDelayed({ displayNext() }, 3000)
     }
 
@@ -177,8 +185,9 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
     private fun tryStartFirstSession() {
         if (isSphinxInitialized && isTtsInitialized && translation != null) {
+
             updateText("${translation?.englishWord}\n${translation?.chineseWord}\n${translation?.pinyin}")
-            announce() // announce once when displayed
+            announce()
             listen()
         }
     }
@@ -186,9 +195,10 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private fun displayNext() {
         if (isSphinxInitialized && isTtsInitialized) {
             translation = dataLogic.getTranslation(this, wordIndex)
+
             if (translation != null) {
                 updateText("${translation?.englishWord}\n${translation?.chineseWord}\n${translation?.pinyin}")
-                announce() // announce once when displayed
+                announce()
                 listen()
             } else {
                 startActivity(Intent(this, WinActivity::class.java))
@@ -206,11 +216,12 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private fun announce() {
         translation?.chineseWord?.let { word ->
             if (isTtsInitialized) {
-                // Explicitly set language before speaking
                 val result = tts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
+
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     tts?.setLanguage(Locale.CHINESE)
                 }
+
                 tts?.speak(word, TextToSpeech.QUEUE_FLUSH, null, "UTTERANCE_ID_$word")
             }
         }
