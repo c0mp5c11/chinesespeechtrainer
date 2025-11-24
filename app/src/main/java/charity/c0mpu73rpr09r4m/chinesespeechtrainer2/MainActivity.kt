@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
 import charity.c0mpu73rpr09r4m.chinesespeechtrainer2.ui.theme.ChineseSpeechTrainerTheme
 import edu.cmu.pocketsphinx.Hypothesis
 import edu.cmu.pocketsphinx.RecognitionListener
@@ -36,13 +37,15 @@ import edu.cmu.pocketsphinx.SpeechRecognizerSetup
 import java.io.File
 import java.io.IOException
 import java.util.Locale
+import androidx.compose.runtime.livedata.observeAsState
+
 
 class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnInitListener {
     private var displayText by mutableStateOf("")
     private var translation: Translation? = null
     private val dictionaryFileName = "zh_cn.dic"
     private val maximumTries = 3
-    private val threshold = 4.885e-16f
+    private val threshold = 1e-20f
     private val wakeLockTag = "CHINESE_SPEECH_TRAINER:TAG"
     private var speechRecognizer: SpeechRecognizer? = null
     private var tts: TextToSpeech? = null
@@ -53,6 +56,9 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private var isTtsInitialized: Boolean = false
     private val dataLogic: DataLogic = DataLogic()
     private val speechLogic: SpeechLogic = SpeechLogic()
+    val borderColor = MutableLiveData(Color.White)
+
+    private val timeout: Long = 10*60*1000L
 
     override fun onResult(hypothesis: Hypothesis?) {}
     override fun onBeginningOfSpeech() {}
@@ -64,7 +70,7 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, wakeLockTag)
-        wakeLock?.acquire()
+        wakeLock?.acquire( timeout)
         enableEdgeToEdge()
 
         setContent {
@@ -93,14 +99,17 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
                                 modifier = Modifier.align(Alignment.TopStart)
                             )
 
+                            val color by borderColor.observeAsState(Color.White)
+
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .background(Color.White, shape = RectangleShape)
-                                    .border(1.dp, Color.Black, RectangleShape)
+                                    .border(5.dp, color, RectangleShape)
                                     .padding(70.dp, 20.dp),
                                 contentAlignment = Alignment.Center
                             ) {
+
                                 Text(
                                     text = displayText,
                                     fontSize = 40.sp,
@@ -137,11 +146,19 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         tts = TextToSpeech(applicationContext, this)
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
+        }
+    }
+
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                tts?.setLanguage(Locale.CHINESE)
+                tts?.language = Locale.CHINESE
             }
             isTtsInitialized = true
             speechRecognizer?.let {
@@ -156,15 +173,23 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         speechRecognizer?.cancel()
         speechRecognizer?.shutdown()
         tts?.shutdown()
-        if (wakeLock?.isHeld == true) {
-            wakeLock?.release()
-        }
     }
 
     override fun onPartialResult(hypothesis: Hypothesis?) {
-        if (hypothesis != null) {
-            onNext()
+        val text = hypothesis?.hypstr
+        if (text != null) {
+            if (text.contains(translation?.chineseWord ?: "")) {
+                setBorderColor(Color.Green)
+                onNext()
+            } else {
+                setBorderColor(Color.Red)
+            }
         }
+    }
+
+    fun setBorderColor(color: Color) {
+        borderColor.postValue(color)
+
     }
 
     override fun onEndOfSpeech() {
@@ -221,6 +246,8 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         translation?.let {
             displayText = "${it.englishWord}\n${it.chineseWord}\n${it.pinyin}"
         }
+
+        setBorderColor(Color.White)
     }
 
     private fun listen() {

@@ -66,4 +66,5 @@ dependencies {
     implementation(files("libs/pocketsphinx.aar"))
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.datastore:datastore-core:1.1.1")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.0")
 }
