@@ -44,8 +44,6 @@ import androidx.compose.runtime.livedata.observeAsState
 class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnInitListener {
     private var displayText by mutableStateOf("")
     private var translation: Translation? = null
-    private val maximumTries = 3
-    private val threshold = 1e-20f
     private val wakeLockTag = "CHINESE_SPEECH_TRAINER:TAG"
     private var recognizer: SpeechRecognizer? = null
     private var wakeLock: PowerManager.WakeLock? = null
@@ -57,7 +55,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private val speechLogic: SpeechLogic = SpeechLogic()
     private var ttsLogic: TtsLogic? = null
     var mutableBorderColor = MutableLiveData(Color.White)
-    var borderColor = Color.White
 
     private val timeout: Long = 10 * 60 * 1000L
 
@@ -90,7 +87,16 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
         Thread {
             try {
-                setupRecognizer(filesDir)
+                if (filesDir != null) {
+                    recognizer = SpeechRecognizerSetup.defaultSetup()
+                        .setAcousticModel(File(filesDir, "zh-cn"))
+                        .setDictionary(File(filesDir, "zh_cn.dic"))
+                        .recognizer
+
+                    recognizer?.addListener(this)
+                    isSphinxInitialized = true
+
+                }
                 refresh()
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -188,21 +194,20 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
         if (text != null) {
             if (text.contains(translation?.chineseWord ?: "")) {
-                borderColor = Color.Green
+                mutableBorderColor.postValue(Color.Green)
                 onNext()
-            } else {
-                borderColor = Color.Red
             }
         }
     }
 
     override fun onEndOfSpeech() {
         tryCount++
-        mutableBorderColor.postValue(borderColor)
 
-        if (tryCount >= maximumTries) {
-            onNext()
+        if(mutableBorderColor.value != Color.Green) {
+            mutableBorderColor.postValue(Color.Red)
         }
+
+        onNext()
     }
 
     private fun onNext() {
@@ -211,20 +216,19 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         tryCount = 1
         wordIndex++
         dataLogic.setWordIndex(this, wordIndex)
-        Handler(mainLooper).postDelayed({ displayNext() }, 3000)
-    }
-    @Throws(IOException::class)
-    private fun setupRecognizer(speechFolder: File?) {
-        if (speechFolder != null) {
-            recognizer = SpeechRecognizerSetup.defaultSetup()
-                .setAcousticModel(File(speechFolder, "zh-cn"))
-                .setDictionary(File(speechFolder, "zh_cn.dic"))
-                .recognizer
 
-            //recognizer?.addListener(this)
-            isSphinxInitialized = true
+        Handler(mainLooper).postDelayed({
+            if (isSphinxInitialized && isTtsInitialized) {
+                translation = dataLogic.getTranslation(this, wordIndex)
 
-        }
+                if (translation != null) {
+                    updateDisplayText()
+                    ttsLogic?.announce(translation)
+                } else {
+                    startActivity(Intent(this, WinActivity::class.java))
+                }
+            }
+        }, 3000)
     }
 
     private fun refresh() {
@@ -234,22 +238,10 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         }
     }
 
-    private fun displayNext() {
-        if (isSphinxInitialized && isTtsInitialized) {
-            translation = dataLogic.getTranslation(this, wordIndex)
-            if (translation != null) {
-                updateDisplayText()
-                ttsLogic?.announce(translation)
-            } else {
-                startActivity(Intent(this, WinActivity::class.java))
-            }
-        }
-    }
-
     private fun updateDisplayText() {
         translation?.let {
             displayText = "${it.englishWord}\n${it.chineseWord}\n${it.pinyin}"
-            borderColor = Color.White
+            mutableBorderColor.postValue(Color.White)
         }
     }
 
@@ -259,6 +251,4 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
             recognizer?.startListening(word)
         }
     }
-
-
 }
