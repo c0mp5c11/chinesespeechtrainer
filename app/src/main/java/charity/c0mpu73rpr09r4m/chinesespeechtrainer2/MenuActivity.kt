@@ -18,11 +18,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import charity.c0mpu73rpr09r4m.chinesespeechtrainer2.ui.theme.ChineseSpeechTrainerTheme
+import java.io.IOException
 
 class MenuActivity : ComponentActivity() {
+    private val speechLogic: SpeechLogic = SpeechLogic()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        Thread {
+            try {
+                speechLogic.copyFolder(this)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }.start()
 
         setContent {
             ChineseSpeechTrainerTheme {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -43,12 +44,10 @@ import androidx.compose.runtime.livedata.observeAsState
 class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnInitListener {
     private var displayText by mutableStateOf("")
     private var translation: Translation? = null
-    private val dictionaryFileName = "zh_cn.dic"
     private val maximumTries = 3
     private val threshold = 1e-20f
     private val wakeLockTag = "CHINESE_SPEECH_TRAINER:TAG"
-    private var speechRecognizer: SpeechRecognizer? = null
-    private var tts: TextToSpeech? = null
+    private var recognizer: SpeechRecognizer? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var wordIndex: Int = 0
     private var tryCount: Int = 1
@@ -56,7 +55,9 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private var isTtsInitialized: Boolean = false
     private val dataLogic: DataLogic = DataLogic()
     private val speechLogic: SpeechLogic = SpeechLogic()
-    val borderColor = MutableLiveData(Color.White)
+    private var ttsLogic: TtsLogic? = null
+    var mutableBorderColor = MutableLiveData(Color.White)
+    var borderColor = Color.White
 
     private val timeout: Long = 10 * 60 * 1000L
 
@@ -71,56 +72,11 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, wakeLockTag)
         wakeLock?.acquire(timeout)
+        ttsLogic = TtsLogic(applicationContext, this)
         enableEdgeToEdge()
 
         setContent {
-            ChineseSpeechTrainerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(innerPadding)
-                                .fillMaxSize()
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                text = wordIndex.toString(),
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                textAlign = TextAlign.Start,
-                                lineHeight = 12.sp,
-                                modifier = Modifier.align(Alignment.TopStart)
-                            )
-
-                            val color by borderColor.observeAsState(Color.White)
-
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .background(Color.White, shape = RectangleShape)
-                                    .border(5.dp, color, RectangleShape)
-                                    .padding(70.dp, 20.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = displayText,
-                                    fontSize = 40.sp,
-                                    color = Color.Black,
-                                    textAlign = TextAlign.Center,
-                                    lineHeight = 50.sp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            setContent()
         }
 
         wordIndex = dataLogic.getWordIndex(this)
@@ -134,15 +90,65 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
         Thread {
             try {
-                val speechFolder = speechLogic.copyFolder(this)
-                setupRecognizer(speechFolder)
+                setupRecognizer(filesDir)
                 refresh()
             } catch (e: IOException) {
                 e.printStackTrace()
             }
         }.start()
 
-        tts = TextToSpeech(applicationContext, this)
+
+    }
+
+    @Composable
+    fun setContent() {
+        ChineseSpeechTrainerTheme {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = wordIndex.toString(),
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            textAlign = TextAlign.Start,
+                            lineHeight = 12.sp,
+                            modifier = Modifier.align(Alignment.TopStart)
+                        )
+
+                        val color by mutableBorderColor.observeAsState(Color.White)
+
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .background(Color.White, shape = RectangleShape)
+                                .border(5.dp, color, RectangleShape)
+                                .padding(70.dp, 20.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = displayText,
+                                fontSize = 24.sp,
+                                color = Color.Black,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 24.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onPause() {
@@ -154,13 +160,9 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = tts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                tts?.language = Locale.CHINESE
-            }
             isTtsInitialized = true
 
-            tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            ttsLogic?.tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onStart(utteranceId: String?) {}
                 override fun onDone(utteranceId: String?) {
                     if (utteranceId == "UTTERANCE_ID_CHINESE") runOnUiThread { listen() }
@@ -176,60 +178,59 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
 
     override fun onDestroy() {
         super.onDestroy()
-        speechRecognizer?.cancel()
-        speechRecognizer?.shutdown()
-        tts?.shutdown()
+        recognizer?.cancel()
+        recognizer?.shutdown()
+        ttsLogic?.tts?.shutdown()
     }
 
     override fun onPartialResult(hypothesis: Hypothesis?) {
         val text = hypothesis?.hypstr
+
         if (text != null) {
             if (text.contains(translation?.chineseWord ?: "")) {
-                setBorderColor(Color.Green)
+                borderColor = Color.Green
                 onNext()
             } else {
-                setBorderColor(Color.Red)
+                borderColor = Color.Red
             }
         }
     }
 
-    fun setBorderColor(color: Color) {
-        borderColor.postValue(color)
-    }
-
     override fun onEndOfSpeech() {
         tryCount++
+        mutableBorderColor.postValue(borderColor)
+
         if (tryCount >= maximumTries) {
             onNext()
         }
     }
 
     private fun onNext() {
-        speechRecognizer?.cancel()
-        speechRecognizer?.stop()
+        recognizer?.cancel()
+        recognizer?.stop()
         tryCount = 1
         wordIndex++
         dataLogic.setWordIndex(this, wordIndex)
         Handler(mainLooper).postDelayed({ displayNext() }, 3000)
     }
-
     @Throws(IOException::class)
     private fun setupRecognizer(speechFolder: File?) {
         if (speechFolder != null) {
-            val setup = SpeechRecognizerSetup.defaultSetup()
-            setup.setKeywordThreshold(threshold)
-            setup.setAcousticModel(speechFolder)
-            setup.setDictionary(File(speechFolder, dictionaryFileName))
-            speechRecognizer = setup.recognizer
-            speechRecognizer?.addListener(this)
+            recognizer = SpeechRecognizerSetup.defaultSetup()
+                .setAcousticModel(File(speechFolder, "zh-cn"))
+                .setDictionary(File(speechFolder, "zh_cn.dic"))
+                .recognizer
+
+            //recognizer?.addListener(this)
             isSphinxInitialized = true
+
         }
     }
 
     private fun refresh() {
         if (isSphinxInitialized && isTtsInitialized && translation != null) {
             updateDisplayText()
-            announce()
+            ttsLogic?.announce(translation)
         }
     }
 
@@ -238,7 +239,7 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
             translation = dataLogic.getTranslation(this, wordIndex)
             if (translation != null) {
                 updateDisplayText()
-                announce()
+                ttsLogic?.announce(translation)
             } else {
                 startActivity(Intent(this, WinActivity::class.java))
             }
@@ -248,40 +249,16 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
     private fun updateDisplayText() {
         translation?.let {
             displayText = "${it.englishWord}\n${it.chineseWord}\n${it.pinyin}"
+            borderColor = Color.White
         }
-        setBorderColor(Color.White)
     }
 
     private fun listen() {
         translation?.chineseWord?.let { word ->
-            speechRecognizer?.addKeyphraseSearch("search", word)
-            speechRecognizer?.startListening("search")
+            recognizer?.addKeyphraseSearch(word, word)
+            recognizer?.startListening(word)
         }
     }
 
-    private fun announce() {
-        translation?.englishWord?.let { english ->
-            tts?.language = Locale.ENGLISH
-            tts?.speak(
-                english,
-                TextToSpeech.QUEUE_FLUSH,
-                null,
-                "UTTERANCE_ID_ENGLISH"
-            )
-            translation?.chineseWord?.let { chinese ->
-                val languageCode = tts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
-                if (languageCode == TextToSpeech.LANG_MISSING_DATA ||
-                    languageCode == TextToSpeech.LANG_NOT_SUPPORTED
-                ) {
-                    tts?.language = Locale.CHINESE
-                }
-                tts?.speak(
-                    chinese,
-                    TextToSpeech.QUEUE_ADD,
-                    null,
-                    "UTTERANCE_ID_CHINESE"
-                )
-            }
-        }
-    }
+
 }

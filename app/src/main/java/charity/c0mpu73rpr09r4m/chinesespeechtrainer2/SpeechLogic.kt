@@ -2,41 +2,36 @@ package charity.c0mpu73rpr09r4m.chinesespeechtrainer2
 
 import android.content.Context
 import java.io.File
-import java.io.IOException
+import java.io.FileOutputStream
 
 public class SpeechLogic {
-    private val assetFolderName = "zh_cn.cd_cont_5000"
-    private val targetFolderName = "pocketsphinx"
+    fun copyFolder(context: Context) {
+        copyAssetFolder(context, "", context.filesDir)
+    }
 
-    fun copyFolder(context: Context) : File? {
-        var result : File? = null
+    private fun copyAssetFolder(context: Context, assetPath: String, destDir: File) {
+        val assetManager = context.assets
+        val files = assetManager.list(assetPath) ?: return
 
-        try {
-            val assetManager = context.assets
-            val files = assetManager.list(assetFolderName)
+        for (fileName in files) {
+            val fullAssetPath = if (assetPath.isEmpty()) fileName else "$assetPath/$fileName"
+            val outFile = File(destDir, fileName)
 
-            if (files != null) {
-                result = File(context.filesDir, targetFolderName)
-
-                if (!result.exists()) {
-                    result.mkdirs()
-                }
-
-                for (fileName in files) {
-                    val assetPath = "$assetFolderName/$fileName"
-                    val outFile = File(result, fileName)
-
-                    assetManager.open(assetPath).use { input ->
-                        outFile.outputStream().use { output ->
-                            input.copyTo(output)
+            if (assetManager.list(fullAssetPath)?.isNotEmpty() == true) {
+                outFile.mkdirs()
+                copyAssetFolder(context, fullAssetPath, outFile)
+            } else {
+                assetManager.open(fullAssetPath).use { input ->
+                    FileOutputStream(outFile).use { output ->
+                        val buffer = ByteArray(1024)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
                         }
                     }
                 }
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
         }
-
-        return result;
     }
+
 }
