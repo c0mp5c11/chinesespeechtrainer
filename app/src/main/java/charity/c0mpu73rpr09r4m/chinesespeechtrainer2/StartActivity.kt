@@ -24,6 +24,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import charity.c0mpu73rpr09r4m.chinesespeechtrainer2.ui.theme.ChineseSpeechTrainerTheme
@@ -53,7 +54,8 @@ class StartActivity : ComponentActivity() {
                                 fontSize = 32.sp,
                                 style = TextStyle(
                                     fontFamily = fontFamily,
-                                    color = Color.Green
+                                    color = Color.Green,
+                                    textAlign = TextAlign.Center
                                 )
                             )
                             Spacer(modifier = Modifier.height(25.dp))

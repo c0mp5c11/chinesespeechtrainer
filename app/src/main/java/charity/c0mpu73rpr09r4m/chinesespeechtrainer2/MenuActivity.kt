@@ -58,8 +58,8 @@ class MenuActivity : ComponentActivity() {
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "The in application audio recording permission request feature stops working as designed if granted or denied once, but permission can be manually set in the operating system application settings. Reinstalling this application will restore functionality if the security setting button stops working.",
-                                fontSize = 20.sp,
+                                text = "The internal application audio recording permission request feature stops working as designed if granted or denied once, but permission can be manually set in the operating system application settings. Reinstalling this application will restore functionality if the security setting button stops working.",
+                                fontSize = 12.sp,
                                 color = Color.White
                             )
 
@@ -77,8 +77,8 @@ class MenuActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.height(20.dp))
 
                             Text(
-                                text = "To hear audible Chinese pronunciation, its voice data must be installed at the operating system level. This may be in addition to United (US) States English.",
-                                fontSize = 20.sp,
+                                text = "To hear audible Chinese pronunciation, its voice data must be installed at the operating system level. This is in addition to United States (US) English.",
+                                fontSize = 12.sp,
                                 color = Color.White
                             )
 
@@ -97,8 +97,8 @@ class MenuActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.height(20.dp))
 
                             Text(
-                                text = "Speak Mandarin Chinese language in this United States English training word game.",
-                                fontSize = 20.sp,
+                                text = "Speak and listen to Mandarin Chinese language in this US English training word game.",
+                                fontSize = 12.sp,
                                 color = Color.White
                             )
 

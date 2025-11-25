@@ -102,8 +102,6 @@ class MainActivity : ComponentActivity(), RecognitionListener, TextToSpeech.OnIn
                 e.printStackTrace()
             }
         }.start()
-
-
     }
 
     @Composable
